@@ -106,6 +106,11 @@ PJ.ui.gameDetail = (function () {
           </div>
         </div>
 
+        <section class="heatmap-section">
+          <h3>Actividad</h3>
+          <div class="heatmap" id="heatmap-container"></div>
+        </section>
+
         <section class="watch-section">
           <h3>Detección de guardado</h3>
           ${watchStatusHtml(game)}
@@ -128,6 +133,7 @@ PJ.ui.gameDetail = (function () {
     wireFieldEditing(root, game);
     wireWatchControls(root, game);
     wireDiary(root, game);
+    PJ.ui.heatmap.render(document.getElementById("heatmap-container"), game.diary);
 
     document.getElementById("btn-delete-game").addEventListener("click", () => {
       if (confirm(`¿Eliminar "${game.name}" y todo su diario? Esta acción no se puede deshacer.`)) {

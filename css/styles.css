@@ -11,6 +11,11 @@
   --warn: #f0a94e;
   --danger: #e2564f;
   --radius: 10px;
+  --heat-0: #1b1f2b;
+  --heat-1: #0e4429;
+  --heat-2: #006d32;
+  --heat-3: #26a641;
+  --heat-4: #39d353;
 }
 
 @media (prefers-color-scheme: light) {
@@ -21,6 +26,11 @@
     --border: #dfe2ea;
     --text: #1c1e26;
     --text-muted: #666b7a;
+    --heat-0: #ebedf0;
+    --heat-1: #9be9a8;
+    --heat-2: #40c463;
+    --heat-3: #30a14e;
+    --heat-4: #216e39;
   }
 }
 
@@ -238,7 +248,30 @@ label.field input, label.field select, label.field textarea {
 .hours-control input { width: 64px; text-align: center; }
 .hours-control button { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); cursor: pointer; }
 
-.watch-section, .diary-section { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+.heatmap-section, .watch-section, .diary-section { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; margin-bottom: 20px; }
+.heatmap-section h3 { margin-top: 0; }
+
+.heatmap-total { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
+.heatmap-body { display: flex; gap: 6px; }
+.heatmap-weekday-labels { display: flex; flex-direction: column; flex-shrink: 0; }
+.heatmap-weekday-spacer { height: 14px; }
+.heatmap-weekday-label { height: 11px; margin-bottom: 3px; font-size: 0.62rem; color: var(--text-muted); line-height: 11px; }
+.heatmap-scroll { overflow-x: auto; padding-bottom: 4px; }
+.heatmap-months { display: flex; height: 14px; }
+.heatmap-weeks { display: flex; }
+.heatmap-col-slot { width: 11px; margin-right: 3px; flex-shrink: 0; }
+.heatmap-month-label { font-size: 0.62rem; color: var(--text-muted); white-space: nowrap; }
+.heatmap-week { display: flex; flex-direction: column; }
+.heatmap-day { width: 11px; height: 11px; border-radius: 2px; margin-bottom: 3px; background: var(--heat-0); }
+.heatmap-day-empty { background: transparent; }
+.heatmap-level-0 { background: var(--heat-0); }
+.heatmap-level-1 { background: var(--heat-1); }
+.heatmap-level-2 { background: var(--heat-2); }
+.heatmap-level-3 { background: var(--heat-3); }
+.heatmap-level-4 { background: var(--heat-4); }
+.heatmap-legend { display: flex; align-items: center; gap: 4px; margin-top: 10px; font-size: 0.7rem; color: var(--text-muted); }
+.heatmap-legend .heatmap-day { margin-bottom: 0; }
+
 .watch-section h3, .diary-section h3 { margin-top: 0; }
 .watch-hint, .watch-unsupported { color: var(--text-muted); font-size: 0.85rem; }
 .watch-status { font-size: 0.85rem; }
