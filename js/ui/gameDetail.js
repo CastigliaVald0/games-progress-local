@@ -5,6 +5,28 @@ PJ.ui.gameDetail = (function () {
   const { STATUS_LABELS, STATUS_ORDER, PERMISSION_STATE, FS_ACCESS_SUPPORTED } = PJ.constants;
   const { escapeHtml, formatDateTime, debounce } = PJ.utils;
 
+  let liveUpdateListenerAttached = false;
+
+  function currentRouteGameId() {
+    const hash = window.location.hash.replace(/^#/, "");
+    const path = hash.split("?")[0];
+    const match = path.match(/^\/game\/([^/]+)$/);
+    return match ? decodeURIComponent(match[1]) : null;
+  }
+
+  function attachLiveUpdateListener(root) {
+    if (liveUpdateListenerAttached) return;
+    liveUpdateListenerAttached = true;
+    const refreshIfActive = (e) => {
+      const gameId = e.detail && e.detail.gameId;
+      if (gameId && gameId === currentRouteGameId()) {
+        render(root, gameId);
+      }
+    };
+    window.addEventListener("pj:save-detected", refreshIfActive);
+    window.addEventListener("pj:watch-changed", refreshIfActive);
+  }
+
   function watchStatusHtml(game) {
     if (!FS_ACCESS_SUPPORTED) {
       return `<p class="watch-unsupported">Tu navegador no soporta la detección automática de guardado (necesita Chrome o Edge). Podés seguir usando el diario manualmente.</p>`;
@@ -134,6 +156,7 @@ PJ.ui.gameDetail = (function () {
     wireWatchControls(root, game);
     wireDiary(root, game);
     PJ.ui.heatmap.render(document.getElementById("heatmap-container"), game.diary);
+    attachLiveUpdateListener(root);
 
     document.getElementById("btn-delete-game").addEventListener("click", () => {
       if (confirm(`¿Eliminar "${game.name}" y todo su diario? Esta acción no se puede deshacer.`)) {
