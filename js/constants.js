@@ -10,7 +10,6 @@ PJ.constants = (function () {
 
   const POLL_INTERVAL_MS = 45000;
   const MAX_IMAGE_DIMENSION = 400;
-  const MAX_AUTO_HOURS_PER_SAVE = 6;
 
   const STATUS = {
     JUGANDO: "jugando",
@@ -54,7 +53,6 @@ PJ.constants = (function () {
     DB_STORE,
     POLL_INTERVAL_MS,
     MAX_IMAGE_DIMENSION,
-    MAX_AUTO_HOURS_PER_SAVE,
     STATUS,
     STATUS_LABELS,
     STATUS_ORDER,

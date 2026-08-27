@@ -1,7 +1,7 @@
 window.PJ = window.PJ || {};
 
 PJ.fileWatcher = (function () {
-  const { POLL_INTERVAL_MS, PERMISSION_STATE, DIARY_TYPE, FS_ACCESS_SUPPORTED, MAX_AUTO_HOURS_PER_SAVE } = PJ.constants;
+  const { POLL_INTERVAL_MS, PERMISSION_STATE, DIARY_TYPE, FS_ACCESS_SUPPORTED } = PJ.constants;
   const storage = PJ.storage;
   const db = PJ.db;
 
@@ -36,38 +36,29 @@ PJ.fileWatcher = (function () {
     return directoryMaxModified(handle);
   }
 
-  function estimateHoursDelta(watch) {
-    const checkpoint = watch.lastDetectionAt || watch.lastCheckedAt;
-    if (!checkpoint) return 0;
-    const elapsedMs = Date.now() - new Date(checkpoint).getTime();
-    const hours = Math.max(0, elapsedMs / 3600000);
-    const capped = Math.min(hours, MAX_AUTO_HOURS_PER_SAVE);
-    return Math.round(capped * 10) / 10;
-  }
-
   async function onSaveDetected(gameId) {
     const game = storage.getGame(gameId);
     if (!game) return;
-    const hoursDelta = estimateHoursDelta(game.watch);
-    const wasCapped = hoursDelta >= MAX_AUTO_HOURS_PER_SAVE;
-    const note = wasCapped
-      ? `Partida guardada (detectado automáticamente) — se sumaron ${hoursDelta} h (tope máximo; ajustá si jugaste menos)`
-      : `Partida guardada (detectado automáticamente) — se sumaron ${hoursDelta} h`;
+
+    const input = window.prompt(
+      `Se detectó un guardado en "${game.name}". ¿Cómo querés identificar esta entrada del diario?`,
+      "Partida guardada"
+    );
+    const name = (input || "").trim() || "Partida guardada";
 
     const entry = storage.addDiaryEntry(gameId, {
       type: DIARY_TYPE.AUTO_SAVE_DETECTED,
-      note,
-      hoursDelta,
+      note: name,
+      hoursDelta: 0,
     });
     storage.updateWatch(gameId, {
       lastCheckedAt: PJ.utils.nowIso(),
-      lastDetectionAt: PJ.utils.nowIso(),
     });
     dispatchSaveDetected(gameId, entry);
     PJ.ui.toast.show({
       gameName: game.name,
       coverImage: game.coverImage,
-      message: `Partida guardada detectada — +${hoursDelta} h`,
+      message: `Entrada agregada: "${name}"`,
       gameId,
       entryId: entry ? entry.id : null,
     });
