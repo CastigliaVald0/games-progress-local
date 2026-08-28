@@ -1,7 +1,7 @@
 window.PJ = window.PJ || {};
 
 PJ.fileWatcher = (function () {
-  const { POLL_INTERVAL_MS, PERMISSION_STATE, DIARY_TYPE, FS_ACCESS_SUPPORTED } = PJ.constants;
+  const { POLL_INTERVAL_MS, PERMISSION_STATE, DIARY_TYPE, FS_ACCESS_SUPPORTED, MAX_AUTO_HOURS_PER_SAVE } = PJ.constants;
   const storage = PJ.storage;
   const db = PJ.db;
 
@@ -36,29 +36,46 @@ PJ.fileWatcher = (function () {
     return directoryMaxModified(handle);
   }
 
+  function estimateHoursDelta(watch) {
+    const anchor = watch && watch.hoursAnchorAt;
+    if (!anchor) return 0;
+    const elapsedMs = Date.now() - new Date(anchor).getTime();
+    const hours = Math.max(0, elapsedMs / 3600000);
+    const capped = Math.min(hours, MAX_AUTO_HOURS_PER_SAVE);
+    return Math.round(capped * 10) / 10;
+  }
+
   async function onSaveDetected(gameId) {
     const game = storage.getGame(gameId);
     if (!game) return;
+    const hoursDelta = estimateHoursDelta(game.watch);
+    const wasCapped = hoursDelta >= MAX_AUTO_HOURS_PER_SAVE;
 
     const input = window.prompt(
-      `Se detectó un guardado en "${game.name}". ¿Cómo querés identificar esta entrada del diario?`,
+      `Se detectó un guardado en "${game.name}". ¿Cómo querés identificar esta entrada del diario?${
+        hoursDelta ? ` (se van a sumar ${hoursDelta} h desde que autorizaste el acceso)` : ""
+      }`,
       "Partida guardada"
     );
     const name = (input || "").trim() || "Partida guardada";
+    const note = wasCapped
+      ? `${name} (el cálculo automático de horas llegó al tope; ajustalo si jugaste menos)`
+      : name;
 
     const entry = storage.addDiaryEntry(gameId, {
       type: DIARY_TYPE.AUTO_SAVE_DETECTED,
-      note: name,
-      hoursDelta: 0,
+      note,
+      hoursDelta,
     });
     storage.updateWatch(gameId, {
       lastCheckedAt: PJ.utils.nowIso(),
+      hoursAnchorAt: PJ.utils.nowIso(),
     });
     dispatchSaveDetected(gameId, entry);
     PJ.ui.toast.show({
       gameName: game.name,
       coverImage: game.coverImage,
-      message: `Entrada agregada: "${name}"`,
+      message: `Entrada agregada: "${name}"${hoursDelta ? ` (+${hoursDelta} h)` : ""}`,
       gameId,
       entryId: entry ? entry.id : null,
     });
@@ -152,6 +169,7 @@ PJ.fileWatcher = (function () {
       kind,
       lastKnownModified: modified,
       lastCheckedAt: PJ.utils.nowIso(),
+      hoursAnchorAt: PJ.utils.nowIso(),
       permissionState: PERMISSION_STATE.GRANTED,
     });
     activeWatchers.set(gameId, { handle, kind });
@@ -175,6 +193,7 @@ PJ.fileWatcher = (function () {
         permissionState: PERMISSION_STATE.GRANTED,
         lastKnownModified: modified,
         lastCheckedAt: PJ.utils.nowIso(),
+        hoursAnchorAt: PJ.utils.nowIso(),
       });
       if (!document.hidden) startPolling();
     } else {
@@ -195,6 +214,7 @@ PJ.fileWatcher = (function () {
       kind: null,
       lastKnownModified: null,
       lastCheckedAt: null,
+      hoursAnchorAt: null,
       permissionState: PERMISSION_STATE.MISSING,
     });
     return storage.getGame(gameId);

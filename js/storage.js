@@ -81,6 +81,7 @@ PJ.storage = (function () {
         kind: null,
         lastKnownModified: null,
         lastCheckedAt: null,
+        hoursAnchorAt: null,
         permissionState: PERMISSION_STATE.MISSING,
       },
       diary: [],
@@ -134,6 +135,9 @@ PJ.storage = (function () {
     game.diary.push(entry);
     if (entry.hoursDelta) {
       game.hoursPlayed = Math.max(0, (Number(game.hoursPlayed) || 0) + entry.hoursDelta);
+    }
+    if (entry.note.trim()) {
+      game.currentProgress = entry.note.trim();
     }
     game.lastPlayedAt = entry.timestamp;
     game.updatedAt = nowIso();

@@ -44,6 +44,7 @@ PJ.ui.gameDetail = (function () {
     if (watch.permissionState === PERMISSION_STATE.GRANTED) {
       return `
         <p class="watch-status watch-status-ok">✓ Vigilando ${watch.kind === "file" ? "archivo" : "carpeta"} de guardado. Última revisión: ${formatDateTime(watch.lastCheckedAt)}</p>
+        <p class="watch-hint">Contando horas jugadas desde: ${formatDateTime(watch.hoursAnchorAt)}</p>
         <div class="watch-actions">
           <button class="btn" id="btn-watch-remove">Quitar seguimiento</button>
         </div>
